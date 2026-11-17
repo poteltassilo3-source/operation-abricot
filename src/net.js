@@ -25,7 +25,16 @@ function onPeers(){if(mode==='title'){renderPick();return;}
  /* mon personnage a été pris par quelqu'un d'autre avant moi */
  if(!me.pres&&mine&&ST&&ST.ph==='lobby'){const clash=pl.find(p=>p!==mine&&p.presence.ch===me.ch&&p.peer<mine.peer);if(clash){me.ch=-1;mode='title';show('title');$('titleMsg').textContent='Ce personnage vient d’être pris. Choisis-en un autre.';pubMe();renderPick();return;}}
  updateOverlays();}
-function setST(st){PREV=ST;ST=st;window.__stR=performance.now();onNewState(ST,PREV,me.pres?-1:me.ch);updateOverlays();}
+function setST(st){PREV=ST;ST=st;window.__stR=performance.now();onNewState(ST,PREV,me.pres?-1:me.ch);updateOverlays();skipLabel();}
+/* bouton du présentateur : son texte dit ce qui va se passer */
+function skipLabel(){if(!me.pres||!ST)return;const S=ST,b=$('pSkip');let t='⏭ Passer',go=false;
+ const voted=CHARS.filter(c=>S.who[c]&&S.ans[c]>=0).length,tot=CHARS.filter(c=>S.who[c]).length;
+ if(S.ph==='pick')t='🎲 Carte au hasard';
+ else if(S.ph==='q'||S.ph==='r2q'){go=voted>=tot&&tot>0;t='✓ Afficher la réponse'+(go?'':' ('+voted+'/'+tot+')');}
+ else if(S.ph==='rev'||S.ph==='act'){t=S.fl.every(Boolean)?'▶ Manche 2':'▶ Carte suivante';go=true;}
+ else if(S.ph==='r2rev'){t=S.si+1>=NSIT?'🏆 Podium':'▶ Info suivante';go=true;}
+ else if(S.ph==='rules')t='▶ Commencer la partie';else if(S.ph==='r2rules')t='▶ Commencer la manche 2';
+ if(b.textContent!==t)b.textContent=t;b.classList.toggle('go',go);}
 function hostTick(dt,force){if(!hostMode||!GM.S)return;const before=GM.S.en;if(dt)hostStep(dt);const now=performance.now();
  if(force||GM.S.en!==before||now-hostPub>300){hostPub=now;setST(JSON.parse(JSON.stringify(GM.S)));pubMe();}}
 let simLast=performance.now();
@@ -52,10 +61,10 @@ function updateOverlays(){if(mode==='title')return;if(!ST){show('lobby');$('lbLi
   const n=CHARS.filter(c=>ST.who[c]).length;$('lbGo').disabled=n<1;$('lbGo').textContent='Tout le monde est là : voir les règles ('+n+'/4)';}
  else if(ST.ph==='rules'){show('rules');const r=CHARS.filter(c=>ST.who[c]);
   $('rdList').innerHTML=r.map(c=>'<span class="pill" style="--c:'+HEROES[c].color+'">'+(ST.rd[c]?'✓ ':'… ')+HEROES[c].name+'</span>').join('');
-  $('rdBtn').disabled=!!ST.rd[me.ch];$('rdBtn').textContent=ST.rd[me.ch]?'✓ Prêt ! On attend les autres…':'J’ai compris, je suis prêt !';}
+  $('rdBtn').disabled=!!ST.rd[me.ch];$('rdBtn').textContent=ST.rd[me.ch]?(ST.man?'✓ Prêt ! Le présentateur va lancer la partie':'✓ Prêt ! On attend les autres…'):'J’ai compris, je suis prêt !';}
  else if(ST.ph==='r2rules'){show('rules2');const r=CHARS.filter(c=>ST.who[c]);
   $('rd2List').innerHTML=r.map(c=>'<span class="pill" style="--c:'+HEROES[c].color+'">'+(ST.rd2[c]?'✓ ':'… ')+HEROES[c].name+' · '+ST.sc[c]+' pts</span>').join('');
-  $('rd2Btn').disabled=!!ST.rd2[me.ch];$('rd2Btn').textContent=ST.rd2[me.ch]?'✓ Prêt ! On attend les autres…':'J’ai compris, c’est parti !';}
+  $('rd2Btn').disabled=!!ST.rd2[me.ch];$('rd2Btn').textContent=ST.rd2[me.ch]?(ST.man?'✓ Prêt ! Le présentateur va lancer la manche 2':'✓ Prêt ! On attend les autres…'):'J’ai compris, c’est parti !';}
  else show(null);}
 const _upd=updateOverlays;
 (function(){const g=$('chars');
@@ -77,6 +86,9 @@ const _upd=updateOverlays;
  $('rd2Force').onclick=()=>sendAct('go','r2rules');
  cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;const h=HITS.find(k=>x>=k.x&&x<=k.x+k.w&&y>=k.y&&y<=k.y+k.h);V.hover=h&&typeof h.id==='number'?h.id:-1;cv.style.cursor=h?'pointer':'default';});
  cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;for(let i=HITS.length-1;i>=0;i--){const h=HITS[i];if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){e.preventDefault();h.fn();return;}}});
+ /* présentateur : espace, Entrée ou flèche droite = bouton « Passer » (marche avec une télécommande de présentation) */
+ window.addEventListener('keydown',e=>{const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='BUTTON'||!me.pres||mode!=='game'||!ST)return;
+  if([' ','Enter','ArrowRight','PageDown'].includes(e.key)&&!['lobby','end'].includes(ST.ph)){e.preventDefault();sendAct('skip');}});
  window.addEventListener('keydown',e=>{const tg=e.target&&e.target.tagName;if(tg==='INPUT')return;if(!ST||(ST.ph!=='q'&&ST.ph!=='r2q')||me.pres||me.ch<0)return;const k=(e.key||'').toLowerCase();const i='abc'.indexOf(k)>=0?'abc'.indexOf(k):'123'.indexOf(k);if(i>=0&&k.length===1&&ST.ans[me.ch]<0)sendAct('an',i);});
  $('qrOpen').onclick=()=>$('qrmodal').classList.add('open');$('qrClose').onclick=()=>$('qrmodal').classList.remove('open');
  initRoom();renderPick();})();

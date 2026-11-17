@@ -34,6 +34,9 @@ h2{font-size:clamp(13px,2vw,18px);color:var(--apl)}
 .char.taken .tk{color:#ff9b8a}
 .char.nope{animation:nope .4s}@keyframes nope{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
 #chFull{color:var(--apl);font-weight:800;margin-top:8px}
+#pbar #pSkip{font-size:12px;padding:10px 14px}#pbar #pSkip.go{background:#3FAE5A;color:#fff;box-shadow:0 3px 0 #1f7a3e;animation:gopulse 1.1s infinite}
+@keyframes gopulse{50%{box-shadow:0 0 0 7px rgba(159,224,176,.35),0 3px 0 #1f7a3e}}
+@media (prefers-reduced-motion:reduce){#pbar #pSkip.go{animation:none}}
 .char canvas,.slot canvas{width:62px;height:82px;image-rendering:pixelated}.char b,.slot b{display:block;font-size:17px}.char .tk,.slot span{display:block;font-size:13px;color:#aab6d3;margin-top:3px}.char .tk{color:var(--apl);font-weight:800}
 .slot.on{border-color:var(--c)}
 input{width:min(280px,100%);padding:10px;border-radius:8px;border:2px solid var(--n3);background:#0b1226;color:var(--paper);font:700 16px "Nunito",sans-serif}

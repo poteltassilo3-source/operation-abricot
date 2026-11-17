@@ -26,7 +26,9 @@ Version Claude (compte Claude requis, avec QR code) : https://claude.ai/artifact
 ## Écran présentateur
 
 - QR code géant et liste des joueurs connectés.
-- Boutons : afficher les règles, **⏭ Passer** (étape suivante), **↻ Nouvelle partie**, son, plein écran.
+- **Le présentateur fait avancer la partie** : quand il est connecté, il n’y a plus de minuteur. L’écran projeté montre qui a voté (✓ / …) ; quand tout le monde a voté, le bouton devient vert. Un clic (ou **Espace / Entrée / →**, compatible télécommande de présentation) passe à l’étape suivante. Le texte du bouton dit ce qui va se passer : « Afficher la réponse », « Carte suivante », « Manche 2 », « Info suivante », « Podium », « Carte au hasard » (si un joueur tarde à choisir).
+- Sans présentateur, les minuteurs reviennent automatiquement (la partie ne reste jamais bloquée).
+- Autres boutons : code de la partie en grand, **↻ Nouvelle partie**, son, plein écran.
 - C’est l’ordinateur du présentateur qui fait tourner la partie : gardez l’onglet ouvert.
 - Sans présentateur, le jeu marche aussi : n’importe quel joueur peut lancer, et si l’ordinateur qui fait tourner la partie se ferme, un autre prend le relais.
 
