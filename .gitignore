@@ -1,0 +1,4 @@
+# captures produites par les tests
+/*.png
+/*.log
+__pycache__/
