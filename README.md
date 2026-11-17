@@ -3,12 +3,17 @@
 Jeu multijoueur pour l’atelier **« Veille stratégique à l’usage des décideurs »** (Business Team Academy, HES-SO).
 Quatre personnages (Cléo, Ana, Rémi, Dax) s’affrontent, chacun sur son ordinateur. Chaque bonne réponse fait monter sa tour : la plus grande tour gagne.
 
-**Jouer (sans compte) :** https://operation-abricot.poteltassilo3.workers.dev (ou scanner `assets/QR_Cloudflare.svg`)
+**Jouer (sans compte) :** https://operation-abricot.poteltassilo3.workers.dev
 
-Version Claude (compte Claude requis) : https://claude.ai/artifact/Uk8bbCzjKh6s32uQNDyi4C (`assets/QR_Operation_Abricot.png`)
+On rejoint une partie avec un **code à 4 caractères**, comme sur Kahoot :
 
-Présentateur : ouvrir https://operation-abricot.poteltassilo3.workers.dev/#presentateur sur l’ordinateur projeté.
-Plusieurs groupes en même temps : ajouter `?salle=nom` à l’adresse (ex. `…workers.dev/?salle=groupe2`), chaque salle est une partie séparée.
+1. **Présentateur** (ordinateur projeté) : ouvrir le site, cliquer sur **« Créer une nouvelle partie »**. Un code (ex. `K7P2`) s’affiche en grand.
+2. **Joueurs** : ouvrir le site, taper le code, choisir un personnage et un prénom.
+3. Un mauvais code affiche « Aucune partie avec ce code ». Recharger la page garde la partie (le code est dans l’adresse : `?salle=K7P2`).
+
+Chaque code est une partie séparée : plusieurs groupes peuvent jouer en même temps.
+
+Version Claude (compte Claude requis, avec QR code) : https://claude.ai/artifact/Uk8bbCzjKh6s32uQNDyi4C (`assets/QR_Operation_Abricot.png`)
 
 ## Déroulé (≈ 20 minutes)
 
@@ -39,7 +44,7 @@ Plusieurs groupes en même temps : ajouter `?salle=nom` à l’adresse (ex. `…
 | `src/` | les sources : `data.js` (questions, cartes action, situations), `game.js` (règles et points), `view.js` (dessin), `net.js` (connexion, accueil, présentateur), `template.html` (page et styles) |
 | `src/build.py` | reconstruit `index.html` à partir des sources : `python3 src/build.py` |
 | `cloudflare/` | serveur Cloudflare (`worker.js`, `wrangler.jsonc`), couche réseau, et `public/` (page générée, ne pas modifier à la main) |
-| `src/build_cloudflare.py` | fabrique `cloudflare/public/index.html` depuis `index.html` (adresse et QR code Cloudflare) |
+| `src/build_cloudflare.py` | fabrique `cloudflare/public/index.html` depuis `index.html` (écran « code de la partie », codes à la place des QR codes) |
 | `outils/qr.py` | générateur de QR code sans dépendance |
 | `tests/` | parties automatiques avec plusieurs navigateurs simulés (Playwright + Chrome), lancées depuis la racine du dépôt |
 

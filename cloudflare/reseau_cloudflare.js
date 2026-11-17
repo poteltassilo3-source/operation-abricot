@@ -3,7 +3,31 @@
 (function(){
  if(window.claude&&typeof window.claude.use==='function')return;
  var peer=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
- var salle=((new URLSearchParams(location.search).get('salle'))||'abricot').replace(/[^a-zA-Z0-9-]/g,'').slice(0,40)||'abricot';
+ var salle=((new URLSearchParams(location.search).get('salle'))||'').toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,40);
+
+ /* ---------- code de partie ---------- */
+ var ALPH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',$=function(id){return document.getElementById(id);};
+ function info(code){return fetch('/salle-info?salle='+encodeURIComponent(code),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){return j.n||0;}).catch(function(){return -1;});}
+ function aller(code,pres){location.href='/?salle='+code+(pres?'#presentateur':'');}
+ if(!salle){
+  var msg=function(t){$('codeMsg').textContent=t;};
+  var creer=function(essai){essai=essai||0;var c='';for(var i=0;i<4;i++)c+=ALPH[Math.floor(Math.random()*ALPH.length)];
+   msg('');$('newGameBtn').disabled=true;
+   info(c).then(function(n){if(n===0)aller(c,true);else if(n>0&&essai<6)creer(essai+1);else{$('newGameBtn').disabled=false;msg('Connexion au serveur impossible : vérifiez internet.');}});};
+  $('newGameBtn').onclick=function(){creer(0);};
+  $('codeIn').addEventListener('input',function(){var v=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(v!==this.value)this.value=v;});
+  $('codeForm').onsubmit=function(e){e.preventDefault();var c=$('codeIn').value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+   if(c.length!==4){msg('Le code a 4 caractères (lettres et chiffres).');return;}
+   msg('');$('codeGo').disabled=true;
+   info(c).then(function(n){$('codeGo').disabled=false;if(n>0)aller(c,false);else if(n===0)msg('Aucune partie avec le code '+c+'. Vérifie le code affiché à l’écran.');else msg('Connexion au serveur impossible : vérifiez internet.');});};
+  if(/pr[ée]sentat/i.test(decodeURIComponent(location.hash||'')))creer(0);else setTimeout(function(){try{$('codeIn').focus();}catch(e){}},50);
+  /* pas de connexion tant qu'aucun code n'est choisi */
+  window.claude={use:function(){return new Promise(function(){});}};
+  return;
+ }
+ var cs=$('codeScreen');if(cs)cs.parentNode.removeChild(cs);
+ [].forEach.call(document.querySelectorAll('.jcode'),function(el){el.textContent=salle;});
+ [].forEach.call(document.querySelectorAll('.host'),function(el){el.textContent=location.host;});
  var mine={},mineJson='{}',others={},hs=[],errs=[],ws=null,isOpen=false,wait=1000,pending=false,everOpen=false;
  function snapshot(){var ps=[{peer:peer,presence:mine,isMe:true,sameTab:true,kind:'viewer',guest:false}];
   for(var k in others)ps.push({peer:k,presence:others[k].presence,isMe:false,sameTab:false,kind:'viewer',guest:false});return ps;}

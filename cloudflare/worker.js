@@ -1,6 +1,7 @@
 /* Opération Abricot sur Cloudflare.
  * - Sert le jeu (dossier public/).
- * - /ws?salle=...&peer=... : salle de jeu en direct (Durable Object), qui relaie
+ * - /salle-info?salle=CODE : nombre de connectés dans la partie (0 = code inconnu).
+ * - /ws?salle=CODE&peer=... : salle de jeu en direct (Durable Object), qui relaie
  *   la « présence » de chaque joueur à tous les autres, comme la connexion
  *   `room` des pages Claude. Toute la logique du jeu reste dans le navigateur. */
 
@@ -10,7 +11,7 @@ const clean = (s, n) => String(s || '').replace(/[^a-zA-Z0-9-]/g, '').slice(0, n
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    if (url.pathname === '/ws') {
+    if (url.pathname === '/ws' || url.pathname === '/salle-info') {
       const salle = clean(url.searchParams.get('salle'), 40).toLowerCase() || 'abricot';
       const stub = env.SALLES.get(env.SALLES.idFromName(salle));
       return stub.fetch(req);
@@ -27,6 +28,10 @@ export class Salle {
 
   async fetch(req) {
     const url = new URL(req.url);
+    // nombre de personnes connectées : sert à vérifier qu'un code de partie existe
+    if (url.pathname === '/salle-info') {
+      return Response.json({ n: this.state.getWebSockets().length }, { headers: { 'Cache-Control': 'no-store' } });
+    }
     const peer = clean(url.searchParams.get('peer'), 32);
     if (req.headers.get('Upgrade') !== 'websocket' || !peer) {
       return new Response('WebSocket attendu', { status: 426 });
