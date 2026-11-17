@@ -34,7 +34,11 @@ setInterval(()=>{const now=performance.now(),dt=Math.min(.5,(now-simLast)/1000);
 function show(id){['title','lobby','plobby','rules','rules2'].forEach(x=>$(x).classList.toggle('open',x===id));$('qrOpen').style.display=id&&!me.pres?'':'none';document.body.classList.toggle('ingame',!id);document.body.classList.toggle('pres',me.pres);
  $('pbar').style.display=me.pres&&mode==='game'?'flex':'none';if(me.pres&&ST){$('pSkip').style.display=['lobby','end'].includes(ST.ph)?'none':'';$('pReset').style.display=ST.ph==='end'?'':'none';}}
 function takenChars(){const t={};for(const p of players()){if(p.isMe&&p.sameTab)continue;t[p.presence.ch]=p.presence.nm||'?';}return t;}
-function renderPick(){const t=takenChars();for(let c=0;c<4;c++){const el=$('ch'+c),tk=t[c];el.classList.toggle('taken',tk!=null);el.setAttribute('aria-pressed',me.ch===c?'true':'false');$('chtk'+c).textContent=tk!=null?'pris par '+tk:(me.ch===c?'ton personnage':'libre');if(tk!=null&&me.ch===c)me.ch=-1;}$('joinBtn').disabled=!room||me.ch<0;}
+function renderPick(){const t=takenChars();for(let c=0;c<4;c++){const el=$('ch'+c),tk=t[c];el.classList.toggle('taken',tk!=null);el.setAttribute('aria-disabled',tk!=null?'true':'false');
+ if(tk!=null&&me.ch===c){me.ch=-1;$('titleMsg').textContent=String(tk)+' vient de prendre '+HEROES[c].name+'. Choisis un autre personnage.';}
+ el.setAttribute('aria-pressed',me.ch===c?'true':'false');$('chtk'+c).textContent=tk!=null?'🔒 pris par '+tk:(me.ch===c?'✓ ton personnage':'libre');}
+ const libres=CHARS.filter(c=>t[c]==null).length;$('chFull').style.display=libres?'none':'';
+ $('joinBtn').disabled=!room||me.ch<0;}
 function updateOverlays(){if(mode==='title')return;if(!ST){show('lobby');$('lbList').innerHTML='<p>Connexion à la partie…</p>';return;}
  const hasPres=presenters().length>0;$('lbGo').style.display=hasPres?'none':'';$('lbWait').style.display=hasPres?'':'none';$('rdForce').style.display=hasPres&&!me.pres?'none':'';$('rd2Force').style.display=hasPres&&!me.pres?'none':'';$('rdBtn').style.display=me.pres?'none':'';$('rd2Btn').style.display=me.pres?'none':'';
  $('rdForce').textContent=me.pres?'▶ Commencer la partie':'Commencer sans attendre les autres';$('rd2Force').textContent=me.pres?'▶ Commencer la manche 2':'Commencer sans attendre les autres';
@@ -57,7 +61,7 @@ const _upd=updateOverlays;
 (function(){const g=$('chars');
  CHARS.forEach(c=>{const h=HEROES[c];const d=document.createElement('button');d.className='char';d.id='ch'+c;d.style.setProperty('--c',h.color);
   d.innerHTML='<canvas width="64" height="84"></canvas><b style="color:'+h.color+'">'+h.name+'</b><span class="tk" id="chtk'+c+'">libre</span>';
-  d.onclick=()=>{if(d.classList.contains('taken'))return;me.ch=c;renderPick();};g.appendChild(d);const cc=d.querySelector('canvas').getContext('2d');cc.imageSmoothingEnabled=false;drawChar(cc,32,78,h.look,'down',0,false,1.9);});
+  d.onclick=()=>{if(d.classList.contains('taken')){$('titleMsg').textContent=h.name+' est déjà pris. Choisis un autre personnage.';d.classList.remove('nope');void d.offsetWidth;d.classList.add('nope');sBad();return;}$('titleMsg').textContent='';me.ch=c;renderPick();};g.appendChild(d);const cc=d.querySelector('canvas').getContext('2d');cc.imageSmoothingEnabled=false;drawChar(cc,32,78,h.look,'down',0,false,1.9);});
  $('joinBtn').onclick=()=>{if(me.ch<0)return;sWin();me.nm=clean($('pname').value)||HEROES[me.ch].name;mode='game';acts=[];aseq=0;pubMe();show('lobby');onPeers();updateOverlays();};
  const goPres=()=>{if(!room)return;me.pres=true;me.ch=-1;mode='game';acts=[];aseq=0;pubMe();show('plobby');onPeers();updateOverlays();};
  $('presBtn').onclick=goPres;window.__goPres=goPres;

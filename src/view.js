@@ -128,6 +128,21 @@ function drawEnd(S){ctx.fillStyle='rgba(6,10,24,.7)';ctx.fillRect(0,52,W,H-52);c
  if(j.length){const w=j[0];drawChar(ctx,cx,290+(RM?0:Math.sin(V.t*5)*-6),HEROES[w].look,'down',V.t,false,1.7);txt(HEROES[w].name+' ('+S.who[w]+') gagne !',cx,335,24,HEROES[w].color,'center');}
  j.forEach((c,i)=>{txt((i+1)+'. '+HEROES[c].name+' · '+S.who[c],cx-200,388+i*34,18,HEROES[c].color,'left',UI,false);txt(S.sc[c]+' pts',cx+200,388+i*34,18,'#fff','right',UI,false);});
  if(!RM&&Math.random()<.5)burst(Math.random()*W,0,['#ffd23f','#E8832A','#3E86D4','#3FAE5A','#8A4FD0'],2);}
+/* ---------- « À toi ! » : bandeau animé à chaque nouveau tour + cadre qui clignote ---------- */
+function bigTxt(s,x,y,f){ctx.font=f;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.lineJoin='round';ctx.lineWidth=6;ctx.strokeStyle='rgba(8,14,32,.85)';ctx.strokeText(s,x,y);ctx.fillStyle='#fff';ctx.fillText(s,x,y);}
+function drawTurn(S,meCh){if(S.ph!=='pick'||S.turn<0)return;const mine=S.turn===meCh,h=HEROES[S.turn];
+ if(mine){ctx.save();ctx.globalAlpha=.6+.4*Math.sin(V.t*6);ctx.strokeStyle='#ffd23f';ctx.lineWidth=10;ctx.strokeRect(4,56,W-8,H-60);ctx.restore();}
+ const A=V.turnAnim;if(!A||A.c!==S.turn||A.t>2.3)return;
+ const t=A.t,inn=Math.min(1,t/.3),out=t>1.9?Math.max(0,1-(t-1.9)/.4):1,al=inn*out,e=1-Math.pow(1-inn,3);
+ ctx.save();ctx.globalAlpha=al*.65;ctx.fillStyle='#050914';ctx.fillRect(0,52,W,H-52);ctx.globalAlpha=al;
+ const bh=170,by=H/2-bh/2+20;ctx.fillStyle=h.color;ctx.fillRect(0,by,W,bh);
+ ctx.fillStyle='rgba(255,255,255,.13)';for(let k=-2;k<26;k++)ctx.fillRect(k*44+((t*120)%44),by,18,bh);
+ ctx.fillStyle='rgba(0,0,0,.28)';ctx.fillRect(0,by+bh-10,W,10);ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(0,by,W,4);
+ const pulse=mine&&!RM?1+.06*Math.sin(t*12):1;
+ drawChar(ctx,-90+e*250,by+bh-16,h.look,'down',V.t,false,2.3);
+ ctx.save();ctx.translate(W/2+80,by+86);ctx.scale(pulse,pulse);bigTxt(mine?'À toi !':'Au tour de '+h.name,0,0,F(900,mine?78:54));ctx.restore();
+ bigTxt(mine?'Choisis une carte ('+DUR.pick+' s)':String(S.who[S.turn])+' choisit une carte',W/2+80,by+134,F(800,24));
+ ctx.restore();}
 function render(S,meCh){HITS=[];HOX=0;PRES=meCh<0;V.t+=1/60;ctx.save();if(V.shake>0&&!RM)ctx.translate((Math.random()-.5)*6,(Math.random()-.5)*6);
  drawBg();const r2=S.ph==='r2q'||S.ph==='r2rev';
  if(PRES){drawTowers(S);drawPresPanel(S);}
@@ -135,8 +150,9 @@ function render(S,meCh){HITS=[];HOX=0;PRES=meCh<0;V.t+=1/60;ctx.save();if(V.shak
   if(r2)drawSit(S,meCh);else if(S.ph==='q'||S.ph==='rev')drawQuestion(S,meCh);else if(S.ph==='act')drawAction(S,meCh);else if(S.ph==='end')drawEnd(S);}
  for(const p of V.parts){ctx.globalAlpha=Math.max(0,1-p.t/p.ttl);ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.z,p.z);}ctx.globalAlpha=1;
  for(const p of V.pops){ctx.globalAlpha=Math.max(0,1-p.t/1.6);txt(p.s,p.x,p.y-p.t*40,p.big?26:18,p.c,'center',PX);}ctx.globalAlpha=1;
+ drawTurn(S,meCh);
  ctx.restore();drawTop(S,meCh);}
-function tickV(dt){if(V.flip)V.flip.t+=dt;V.shake=Math.max(0,V.shake-dt);for(const p of V.parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=420*dt;}V.parts=V.parts.filter(p=>p.t<p.ttl);for(const p of V.pops)p.t+=dt;V.pops=V.pops.filter(p=>p.t<1.6);}
+function tickV(dt){if(V.flip)V.flip.t+=dt;if(V.turnAnim)V.turnAnim.t+=dt;V.shake=Math.max(0,V.shake-dt);for(const p of V.parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=420*dt;}V.parts=V.parts.filter(p=>p.t<p.ttl);for(const p of V.pops)p.t+=dt;V.pops=V.pops.filter(p=>p.t<1.6);}
 /* points gagnés : au-dessus des tours (présentateur) ou en haut de l'écran (joueur) */
 function showGains(S,meCh,good){for(let c=0;c<4;c++){const g=S.gain[c];if(!g)continue;
  if(meCh<0){const x=towerCX(c),y=Math.max(towerTop(c)-80,PANEL.y+PANEL.h+95);V.pops.push({x,y,s:(g>0?'+':'')+g,c:g>0?'#ffe27a':'#ff9b8a',t:0,big:1});if(g>0)burst(x,towerTop(c)-30,[HEROES[c].color,'#ffd23f','#fff'],26);}
@@ -150,7 +166,8 @@ function onNewState(S,prev,meCh){if(!prev||prev.en===S.en)return;
  if(S.ph==='r2q'&&(prev.ph!=='r2q'||prev.si!==S.si)){V.flip={k:S.en,t:0};sfx(880,.08,'square',.05);setTimeout(()=>sfx(1175,.08,'square',.04),90);}
  if(S.ph==='r2q'&&prev.ph==='r2q'&&prev.si===S.si&&V.flip&&V.flip.k===prev.en)V.flip.k=S.en;
  if(S.ph==='r2rev'&&prev.ph!=='r2rev'){if(meCh>=0&&S.gain[meCh]>0)sWin();else if(meCh>=0)sBad();else sfx(660,.2,'square',.04);showGains(S,meCh);}
- if(S.ph==='pick'&&prev.ph!=='pick'&&S.turn===meCh)sfx(880,.1,'square',.05);
+ if(S.ph==='pick'&&(prev.ph!=='pick'||prev.turn!==S.turn)){V.turnAnim={t:0,c:S.turn};
+  if(S.turn===meCh)[660,880,1320].forEach((f,i)=>setTimeout(()=>sfx(f,.12,'square',.06),i*110));else sfx(523,.08,'square',.03);}
  if(S.ph==='end'&&prev.ph!=='end')sWin();}
 /* ---------- manche 2 : le grand tri (écran joueur, centré) ---------- */
 function binRect(i){return [30+i*177,284,160,190];}

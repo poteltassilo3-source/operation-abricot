@@ -44,6 +44,7 @@ page = remplace('<p><b>Il manque quelqu’un ?</b><br>Scanne ce code pour rejoin
                 '<p><b>Il manque quelqu’un ?</b><br>Ouvrir <span class="host"></span> et entrer ce code</p>', page)
 page = remplace('<b>Scannez le QR code</b> ou ouvrez le lien, choisissez votre personnage et votre prénom.',
                 '<b>Ouvrez le lien ci-contre et entrez le code</b>, puis choisissez votre personnage et votre prénom.', page)
+page = remplace('écran projeté : QR code, lancement, jeu en grand', 'écran projeté : code de la partie, lancement, tours en grand', page)
 page = remplace('<h2>Scanne pour rejoindre la partie</h2>', '<h2>Pour rejoindre la partie</h2>', page)
 page = remplace('aria-label="Afficher le QR code en grand">📱 QR code</button>', 'aria-label="Afficher le code en grand">🔑 Code</button>', page)
 page = remplace('title="Afficher le QR code" aria-label="Afficher le QR code">📱</button>', 'title="Afficher le code" aria-label="Afficher le code">🔑</button>', page)
